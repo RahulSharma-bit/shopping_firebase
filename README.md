@@ -1,4 +1,4 @@
-# shopping_firebase
+# shopping_app
 
 A new Flutter project.
 

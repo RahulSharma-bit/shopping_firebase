@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:shopping_app/data/categories.dart';
 import 'package:shopping_app/models/category.dart';
@@ -18,10 +17,14 @@ class _NewItemState extends State<NewItem> {
   var _enteredName = '';
   var _enteredQuantity = 0;
   var _enteredCategory = categories[Categories.vegetables]!;
+  var _isSending = false;
 
   void _saveItem() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+      setState(() {
+        _isSending = true;
+      });
       final url = Uri.https(
           'shoppingfirebase-98fc2-default-rtdb.firebaseio.com',
           'shopping-list.json');
@@ -38,13 +41,19 @@ class _NewItemState extends State<NewItem> {
           },
         ),
       );
+
+      final Map<String, dynamic> resData = json.decode(response.body);
       if (!context.mounted) {
         return;
       }
       debugPrint(response.statusCode.toString());
       debugPrint(response.body);
 
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(GroceryItem(
+          id: resData['name'],
+          name: _enteredName,
+          quantity: _enteredQuantity,
+          category: _enteredCategory));
     }
   }
 
@@ -139,9 +148,20 @@ class _NewItemState extends State<NewItem> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton(onPressed: _resetForm, child: const Text('Reset')),
+                  TextButton(
+                    onPressed: _isSending ? null : _resetForm,
+                    child: const Text('Reset'),
+                  ),
                   ElevatedButton(
-                      onPressed: _saveItem, child: const Text('Submit'))
+                    onPressed: _isSending ? null : _saveItem,
+                    child: _isSending
+                        ? const SizedBox(
+                            height: 16,
+                            width: 16,
+                            child: CircularProgressIndicator(),
+                          )
+                        : const Text('Submit'),
+                  )
                 ],
               )
             ],
